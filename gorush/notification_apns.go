@@ -7,6 +7,7 @@ import (
 	"errors"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -370,6 +371,16 @@ Retry:
 			}
 			// apns server error
 			LogPush(FailedPush, token, req, err)
+			//BadDeviceToken device for ios
+			if strings.Contains(err.Error(), "BadDeviceToken") {
+				//req.BadTokens = append(req.BadTokens, token)
+				LogError.Warning("Detect BadDeviceToken device token ", token)
+				if err = TokenBlackList.Blacklist(token); err != nil {
+					LogError.Warning("Blacklist BadDeviceToken failed ", err)
+				} else {
+					LogError.Info("Blacklist BadDeviceToken success")
+				}
+			}
 
 			if PushConf.Core.Sync {
 				req.AddLog(getLogPushEntry(FailedPush, token, req, err))
@@ -399,6 +410,8 @@ Retry:
 
 		// resend fail token
 		req.Tokens = newTokens
+
+		isError = false
 		goto Retry
 	}
 

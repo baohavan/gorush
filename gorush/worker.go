@@ -3,12 +3,21 @@ package gorush
 import (
 	"context"
 	"errors"
+	"github.com/appleboy/gorush/blacklist"
 	"sync"
 )
 
 // InitWorkers for initialize all workers.
 func InitWorkers(ctx context.Context, wg *sync.WaitGroup, workerNum int64, queueNum int64) {
 	LogAccess.Info("worker number is ", workerNum, ", queue number is ", queueNum)
+	TokenBlackList = blacklist.NewBlackList(PushConf)
+	err := TokenBlackList.Init()
+	if err != nil {
+		LogAccess.Infof("Init blacklist failed %v", err)
+	} else {
+		LogAccess.Info("init blacklist success")
+	}
+
 	QueueNotification = make(chan PushNotification, queueNum)
 	for i := int64(0); i < workerNum; i++ {
 		go startWorker(ctx, wg, i)
@@ -21,6 +30,17 @@ func SendNotification(req PushNotification) {
 		defer req.WaitDone()
 	}
 
+	var allowTokens []string
+	for _, token := range req.Tokens {
+		if err, bl := TokenBlackList.IsInBlacklist(token); err != nil || !bl {
+			allowTokens = append(allowTokens, token)
+		} else {
+			LogError.Warning("Detect blacklist token ", token)
+		}
+	}
+
+	req.Tokens = allowTokens
+
 	select {
 	case <-req.Ctx.Done():
 	default:
@@ -30,6 +50,11 @@ func SendNotification(req PushNotification) {
 		case PlatFormAndroid:
 			PushToAndroid(req)
 		}
+	}
+
+	for _, token := range req.BadTokens {
+		LogError.Warning("Blacklist token ", token)
+		TokenBlackList.Blacklist(token)
 	}
 }
 

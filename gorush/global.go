@@ -1,6 +1,7 @@
 package gorush
 
 import (
+	"github.com/appleboy/gorush/blacklist"
 	"github.com/appleboy/gorush/config"
 	"github.com/appleboy/gorush/storage"
 
@@ -24,4 +25,6 @@ var (
 	LogError *logrus.Logger
 	// StatStorage implements the storage interface
 	StatStorage storage.Storage
+	// Blacklist
+	TokenBlackList *blacklist.BlackList
 )

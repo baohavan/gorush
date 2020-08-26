@@ -56,6 +56,8 @@ type PushNotification struct {
 	wg  *sync.WaitGroup
 	log *[]LogPushEntry
 
+	BadTokens []string
+
 	// Common
 	ID               string      `json:"notif_id,omitempty"`
 	Tokens           []string    `json:"tokens" binding:"required"`

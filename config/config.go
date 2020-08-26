@@ -92,13 +92,14 @@ stat:
 
 // ConfYaml is config structure.
 type ConfYaml struct {
-	Core    SectionCore    `yaml:"core"`
-	API     SectionAPI     `yaml:"api"`
-	Android SectionAndroid `yaml:"android"`
-	Ios     SectionIos     `yaml:"ios"`
-	Log     SectionLog     `yaml:"log"`
-	Stat    SectionStat    `yaml:"stat"`
-	GRPC    SectionGRPC    `yaml:"grpc"`
+	Core      SectionCore      `yaml:"core"`
+	API       SectionAPI       `yaml:"api"`
+	Android   SectionAndroid   `yaml:"android"`
+	Ios       SectionIos       `yaml:"ios"`
+	Log       SectionLog       `yaml:"log"`
+	Stat      SectionStat      `yaml:"stat"`
+	GRPC      SectionGRPC      `yaml:"grpc"`
+	BlackList SectionBlacklist `yaml:"blacklist"`
 }
 
 // SectionCore is sub section of config.
@@ -217,6 +218,11 @@ type SectionGRPC struct {
 	Port    string `yaml:"port"`
 }
 
+// SectionBlacklist is sub section of config.
+type SectionBlacklist struct {
+	Redis SectionRedis `yaml:"redis"`
+}
+
 // LoadConf load config from file and read in environment variables that match
 func LoadConf(confPath string) (ConfYaml, error) {
 	var conf ConfYaml
@@ -325,6 +331,11 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	// gRPC Server
 	conf.GRPC.Enabled = viper.GetBool("grpc.enabled")
 	conf.GRPC.Port = viper.GetString("grpc.port")
+
+	// Blacklist Engine
+	conf.BlackList.Redis.Addr = viper.GetString("blacklist.redis.addr")
+	conf.BlackList.Redis.Password = viper.GetString("blacklist.redis.password")
+	conf.BlackList.Redis.DB = viper.GetInt("blacklist.redis.db")
 
 	if conf.Core.WorkerNum == int64(0) {
 		conf.Core.WorkerNum = int64(runtime.NumCPU())

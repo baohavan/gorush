@@ -3,9 +3,9 @@ package gorush
 import (
 	"errors"
 	"fmt"
-
-	"github.com/appleboy/go-fcm"
+	"github.com/baohavan/go-fcm"
 	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 // InitFCMClient use for initialize FCM Client.
@@ -21,7 +21,29 @@ func InitFCMClient(key string) (*fcm.Client, error) {
 	}
 
 	if FCMClient == nil {
+		LogAccess.Debug("Init NewClient client")
 		FCMClient, err = fcm.NewClient(key)
+		return FCMClient, err
+	}
+
+	return FCMClient, nil
+}
+
+// InitFCMClient use for initialize FCM Client.
+func InitFCMClientByCredentials(credentials string) (*fcm.Client, error) {
+	var err error
+
+	if credentials == "" {
+		return nil, errors.New("Missing Android API Key")
+	}
+
+	if credentials != PushConf.Android.Credentials {
+		return fcm.NewClientWithCredentials(credentials)
+	}
+
+	if FCMClient == nil {
+		LogAccess.Debugf("Init NewClientWithCredentials client %s", credentials)
+		FCMClient, err = fcm.NewClientWithCredentials(credentials)
 		return FCMClient, err
 	}
 
@@ -54,9 +76,9 @@ func GetAndroidNotification(req PushNotification) *fcm.Message {
 
 	// Add another field
 	if len(req.Data) > 0 {
-		notification.Data = make(map[string]interface{})
+		notification.Data = make(map[string]string)
 		for k, v := range req.Data {
-			notification.Data[k] = v
+			notification.Data[k] = v.(string)
 		}
 	}
 
@@ -94,7 +116,7 @@ func GetAndroidNotification(req PushNotification) *fcm.Message {
 	// handle iOS apns in fcm
 
 	if len(req.Apns) > 0 {
-		notification.Apns = req.Apns
+		//notification.Apns = req.Apns
 	}
 
 	return notification
@@ -130,7 +152,11 @@ Retry:
 	if req.APIKey != "" {
 		client, err = InitFCMClient(req.APIKey)
 	} else {
-		client, err = InitFCMClient(PushConf.Android.APIKey)
+		if PushConf.Android.Credentials != "" {
+			client, err = InitFCMClient(PushConf.Android.APIKey)
+		} else {
+			client, err = InitFCMClientByCredentials(PushConf.Android.Credentials)
+		}
 	}
 
 	if err != nil {
@@ -167,6 +193,17 @@ Retry:
 			isError = true
 			newTokens = append(newTokens, to)
 			LogPush(FailedPush, to, req, result.Error)
+			//unregistered device for android
+			if strings.Contains(result.Error.Error(), "unregistered device") {
+				//req.BadTokens = append(req.BadTokens, to)
+				LogError.Warning("Detect unregistered device token ", to)
+				if err = TokenBlackList.Blacklist(to); err != nil {
+					LogError.Warning("Blacklist unregistered device token failed ", err)
+				} else {
+					LogError.Info("Blacklist unregistered device toke success")
+				}
+			}
+
 			if PushConf.Core.Sync {
 				req.AddLog(getLogPushEntry(FailedPush, to, req, result.Error))
 			} else if PushConf.Core.FeedbackURL != "" {
@@ -221,6 +258,8 @@ Retry:
 
 		// resend fail token
 		req.Tokens = newTokens
+
+		isError = false
 		goto Retry
 	}
 
