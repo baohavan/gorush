@@ -145,9 +145,10 @@ type SectionAPI struct {
 
 // SectionAndroid is sub section of config.
 type SectionAndroid struct {
-	Enabled  bool   `yaml:"enabled"`
-	APIKey   string `yaml:"apikey"`
-	MaxRetry int    `yaml:"max_retry"`
+	Enabled     bool   `yaml:"enabled"`
+	APIKey      string `yaml:"apikey"`
+	MaxRetry    int    `yaml:"max_retry"`
+	Credentials string `yaml:"credentials"`
 }
 
 // SectionIos is sub section of config.
@@ -298,6 +299,7 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	conf.Android.Enabled = viper.GetBool("android.enabled")
 	conf.Android.APIKey = viper.GetString("android.apikey")
 	conf.Android.MaxRetry = viper.GetInt("android.max_retry")
+	conf.Android.Credentials = viper.GetString("android.credentials")
 
 	// iOS
 	conf.Ios.Enabled = viper.GetBool("ios.enabled")

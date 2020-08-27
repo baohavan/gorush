@@ -9,7 +9,20 @@ import (
 )
 
 // InitFCMClient use for initialize FCM Client.
-func InitFCMClient(key string) (*fcm.Client, error) {
+func InitFCMClient() (*fcm.Client, error) {
+	var err error
+
+	if PushConf.Android.Credentials == "" {
+		FCMClient, err = InitFCMClientByApiKey(PushConf.Android.APIKey)
+	} else {
+		FCMClient, err = InitFCMClientByCredentials(PushConf.Android.Credentials)
+	}
+
+	return FCMClient, err
+}
+
+// InitFCMClientByApiKey use for initialize FCM Client.
+func InitFCMClientByApiKey(key string) (*fcm.Client, error) {
 	var err error
 
 	if key == "" {
@@ -76,9 +89,9 @@ func GetAndroidNotification(req PushNotification) *fcm.Message {
 
 	// Add another field
 	if len(req.Data) > 0 {
-		notification.Data = make(map[string]string)
+		notification.Data = make(map[string]interface{})
 		for k, v := range req.Data {
-			notification.Data[k] = v.(string)
+			notification.Data[k] = v
 		}
 	}
 
@@ -116,7 +129,7 @@ func GetAndroidNotification(req PushNotification) *fcm.Message {
 	// handle iOS apns in fcm
 
 	if len(req.Apns) > 0 {
-		//notification.Apns = req.Apns
+		notification.Apns = req.Apns
 	}
 
 	return notification
@@ -150,13 +163,9 @@ Retry:
 	notification := GetAndroidNotification(req)
 
 	if req.APIKey != "" {
-		client, err = InitFCMClient(req.APIKey)
+		client, err = InitFCMClientByApiKey(req.APIKey)
 	} else {
-		if PushConf.Android.Credentials != "" {
-			client, err = InitFCMClient(PushConf.Android.APIKey)
-		} else {
-			client, err = InitFCMClientByCredentials(PushConf.Android.Credentials)
-		}
+		client, err = InitFCMClient()
 	}
 
 	if err != nil {

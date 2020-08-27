@@ -1,6 +1,6 @@
 module github.com/appleboy/gorush
 
-go 1.13
+go 1.14
 
 require (
 	github.com/AndreasBriese/bbloom v0.0.0-20190825152654-46b345b51c96 // indirect
@@ -9,11 +9,10 @@ require (
 	github.com/apex/gateway v1.1.1
 	github.com/appleboy/com v0.0.2
 	github.com/appleboy/gin-status-api v1.1.0
-	github.com/appleboy/go-fcm v0.1.5
 	github.com/appleboy/gofight/v2 v2.1.2
 	github.com/asdine/storm v2.1.2+incompatible
 	github.com/aws/aws-lambda-go v1.13.3 // indirect
-	github.com/baohavan/go-fcm v0.1.6
+	github.com/baohavan/go-fcm v0.1.10
 	github.com/buger/jsonparser v0.0.0-20191204142016-1a29609e0929
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/dgraph-io/badger v1.6.0
@@ -23,12 +22,10 @@ require (
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.10
-	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/prometheus/client_golang v1.2.1

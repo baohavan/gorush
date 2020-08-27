@@ -7,8 +7,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/appleboy/go-fcm"
 	"github.com/appleboy/gorush/config"
+	"github.com/baohavan/go-fcm"
 	"github.com/stretchr/testify/assert"
 )
 

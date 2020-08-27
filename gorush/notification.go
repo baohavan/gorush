@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/appleboy/go-fcm"
+	"github.com/baohavan/go-fcm"
 )
 
 // D provide string array
@@ -57,6 +57,7 @@ type PushNotification struct {
 	log *[]LogPushEntry
 
 	BadTokens []string
+	AppID     int `json:"-"`
 
 	// Common
 	ID               string      `json:"notif_id,omitempty"`
@@ -198,9 +199,11 @@ func CheckPushConf() error {
 	}
 
 	if PushConf.Android.Enabled {
-		if PushConf.Android.APIKey == "" {
-			return errors.New("Missing Android API Key")
+		if PushConf.Android.APIKey == "" && PushConf.Android.Credentials == "" {
+			return errors.New("Missing Android API Key and Missing Credentials")
 		}
+
+		LogAccess.Debugf("Android push config API Key %v, Credentials %v", PushConf.Android.APIKey, PushConf.Android.Credentials)
 	}
 
 	return nil

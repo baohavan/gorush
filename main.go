@@ -265,7 +265,7 @@ func main() {
 		gorush.LogError.Fatal(err)
 	}
 
-	if _, err = gorush.InitFCMClient(gorush.PushConf.Android.APIKey); err != nil {
+	if _, err = gorush.InitFCMClient(); err != nil {
 		gorush.LogError.Fatal(err)
 	}
 
