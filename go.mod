@@ -37,13 +37,14 @@ require (
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
-	github.com/spf13/viper v1.5.0
+	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.4.0
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/thoas/stats v0.0.0-20190407194641-965cb2de1678
 	github.com/tidwall/buntdb v1.1.2
 	github.com/tidwall/gjson v1.3.5 // indirect
 	github.com/tj/assert v0.0.0-20171129193455-018094318fb0 // indirect
+	github.com/ulikunitz/xz v0.5.8 // indirect
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
@@ -52,5 +53,5 @@ require (
 	google.golang.org/grpc v1.31.0
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/redis.v5 v5.2.9
-	gopkg.in/yaml.v2 v2.2.7 // indirect
+	gopkg.in/yaml.v2 v2.2.7
 )

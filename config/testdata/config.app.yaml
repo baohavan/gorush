@@ -1,0 +1,19 @@
+apps:
+  - app_id : 1
+    android:
+      credentials_base64: "base64_1"
+      enabled: true
+      max_retry: 0 # resend fail notification, default value zero is disabled
+    ios:
+      enabled: true
+      key_base64: "" # load iOS key from base64 input
+      key_type: "pem" # could be pem, p12 or p8 type
+  - app_id: 10
+    android:
+      credentials_base64: "base64_2"
+      enabled: true
+      max_retry: 0 # resend fail notification, default value zero is disabled
+    ios:
+      enabled: true
+      key_base64: "" # load iOS key from base64 input
+      key_type: "pem" # could be pem, p12 or p8 type

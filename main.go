@@ -269,6 +269,8 @@ func main() {
 		gorush.LogError.Fatal(err)
 	}
 
+	gorush.InitApplication()
+
 	var g errgroup.Group
 
 	// Run httpd server

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/appleboy/gorush/blacklist"
+	"github.com/appleboy/gorush/config"
 	"sync"
 )
 
@@ -32,6 +33,13 @@ func SendNotification(req PushNotification) {
 
 	var allowTokens []string
 	for _, token := range req.Tokens {
+		if err, dev := TokenBlackList.IsInDevToken(token); err == nil && dev {
+			allowTokens = append(allowTokens, token)
+			req.Development = true
+			LogError.Warningf("Detect dev token %s => Force development", token)
+			continue
+		}
+
 		if err, bl := TokenBlackList.IsInBlacklist(token); err != nil || !bl {
 			allowTokens = append(allowTokens, token)
 		} else {
@@ -39,6 +47,7 @@ func SendNotification(req PushNotification) {
 		}
 	}
 
+	LogAccess.Infof("Send notification for app %d", req.AppID)
 	req.Tokens = allowTokens
 
 	select {
@@ -82,13 +91,28 @@ func queueNotification(ctx context.Context, req RequestPush) (int, []LogPushEntr
 	newNotification := []*PushNotification{}
 	for i := range req.Notifications {
 		notification := &req.Notifications[i]
+		var enableAndroid, enableIos bool
+		if notification.AppID == 0 {
+			enableAndroid = PushConf.Android.Enabled
+			enableIos = PushConf.Ios.Enabled
+		} else {
+			conf := config.GetApplicationConfig(&PushConf, notification.AppID)
+			if conf == nil {
+				LogError.Warningf("Missing config for application %d => Skip queuing", notification.AppID)
+				continue
+			}
+
+			enableAndroid = conf.Android.Enabled
+			enableIos = conf.Ios.Enabled
+		}
+
 		switch notification.Platform {
 		case PlatFormIos:
-			if !PushConf.Ios.Enabled {
+			if !enableAndroid {
 				continue
 			}
 		case PlatFormAndroid:
-			if !PushConf.Android.Enabled {
+			if !enableIos {
 				continue
 			}
 		}

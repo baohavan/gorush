@@ -27,4 +27,13 @@ var (
 	StatStorage storage.Storage
 	// Blacklist
 	TokenBlackList *blacklist.BlackList
+	// Application clients
+	ApplicationList map[int]*ApplicationClient
 )
+
+type ApplicationClient struct {
+	// ApnsClient is apns client
+	ApnsClient *apns2.Client
+	// FCMClient is fcm client
+	FCMClient *fcm.Client
+}

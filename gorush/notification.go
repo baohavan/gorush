@@ -57,9 +57,9 @@ type PushNotification struct {
 	log *[]LogPushEntry
 
 	BadTokens []string
-	AppID     int `json:"-"`
 
 	// Common
+	AppID            int         `json:"-,omitempty"`
 	ID               string      `json:"notif_id,omitempty"`
 	Tokens           []string    `json:"tokens" binding:"required"`
 	Platform         int         `json:"platform" binding:"required"`

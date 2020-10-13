@@ -3,10 +3,29 @@ package gorush
 import (
 	"errors"
 	"fmt"
+	"github.com/appleboy/gorush/config"
 	"github.com/baohavan/go-fcm"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
+
+// InitFCMClient use for initialize FCM Client for specific app.
+func InitFCMClientByAppID(appID int) error {
+	var err error
+
+	conf := config.GetApplicationConfig(&PushConf, appID)
+	if conf == nil {
+		return errors.New(fmt.Sprintf("Not found app config %d", appID))
+	}
+
+	if conf.Android.Credentials == "" {
+		err = InitFCMClientByApiKeyByAppID(appID, conf.Android)
+	} else {
+		err = InitFCMClientByCredentialsByAppId(appID, conf.Android)
+	}
+
+	return err
+}
 
 // InitFCMClient use for initialize FCM Client.
 func InitFCMClient() (*fcm.Client, error) {
@@ -42,6 +61,23 @@ func InitFCMClientByApiKey(key string) (*fcm.Client, error) {
 	return FCMClient, nil
 }
 
+// InitFCMClientByApiKey use for initialize FCM Client.
+func InitFCMClientByApiKeyByAppID(appID int, conf config.SectionAndroid) error {
+	var err error
+
+	if conf.APIKey == "" {
+		return errors.New("Missing Android API Key")
+	}
+
+	if ApplicationList[appID].FCMClient == nil {
+		LogAccess.Infof("Init NewClient client for app %d with key %s", appID, conf.APIKey)
+		ApplicationList[appID].FCMClient, err = fcm.NewClient(conf.APIKey)
+		return err
+	}
+
+	return nil
+}
+
 // InitFCMClient use for initialize FCM Client.
 func InitFCMClientByCredentials(credentials string) (*fcm.Client, error) {
 	var err error
@@ -55,12 +91,30 @@ func InitFCMClientByCredentials(credentials string) (*fcm.Client, error) {
 	}
 
 	if FCMClient == nil {
-		LogAccess.Debugf("Init NewClientWithCredentials client %s", credentials)
+		LogAccess.Infof("Init NewClientWithCredentials client %s", credentials)
 		FCMClient, err = fcm.NewClientWithCredentials(credentials)
 		return FCMClient, err
 	}
 
 	return FCMClient, nil
+}
+
+// InitFCMClient use for initialize FCM Client.
+func InitFCMClientByCredentialsByAppId(appID int, conf config.SectionAndroid) error {
+	var err error
+
+	credentials := conf.Credentials
+	if credentials == "" {
+		return errors.New("Missing Android Credentials")
+	}
+
+	if ApplicationList[appID].FCMClient == nil {
+		LogAccess.Debugf("Init NewClientWithCredentials client %s", credentials)
+		ApplicationList[appID].FCMClient, err = fcm.NewClientWithCredentials(credentials)
+		return err
+	}
+
+	return nil
 }
 
 // GetAndroidNotification use for define Android notification.
@@ -135,6 +189,22 @@ func GetAndroidNotification(req PushNotification) *fcm.Message {
 	return notification
 }
 
+func getFcmClient(req PushNotification) (client *fcm.Client, err error) {
+	if req.APIKey != "" {
+		client, err = InitFCMClientByApiKey(req.APIKey)
+	} else {
+		if req.AppID == 0 {
+			client, err = InitFCMClient()
+		} else {
+			client = ApplicationList[req.AppID].FCMClient
+			if client == nil {
+				err = errors.New(fmt.Sprintf("Fcm client for app %d not config", req.AppID))
+			}
+		}
+	}
+	return
+}
+
 // PushToAndroid provide send notification to Android server.
 func PushToAndroid(req PushNotification) bool {
 	LogAccess.Debug("Start push notification for Android")
@@ -162,11 +232,16 @@ Retry:
 
 	notification := GetAndroidNotification(req)
 
-	if req.APIKey != "" {
-		client, err = InitFCMClientByApiKey(req.APIKey)
-	} else {
-		client, err = InitFCMClient()
-	}
+	//if req.APIKey != "" {
+	//	client, err = InitFCMClientByApiKey(req.APIKey)
+	//} else {
+	//	if req.AppID == 0 {
+	//		client, err = InitFCMClient()
+	//	} else {
+	//		client = ApplicationList[req.AppID].FCMClient
+	//	}
+	//}
+	client, err = getFcmClient(req)
 
 	if err != nil {
 		// FCM server error

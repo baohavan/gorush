@@ -3,7 +3,9 @@ package config
 import (
 	"bytes"
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
 	"runtime"
 	"strings"
 
@@ -92,14 +94,17 @@ stat:
 
 // ConfYaml is config structure.
 type ConfYaml struct {
-	Core      SectionCore      `yaml:"core"`
-	API       SectionAPI       `yaml:"api"`
-	Android   SectionAndroid   `yaml:"android"`
-	Ios       SectionIos       `yaml:"ios"`
-	Log       SectionLog       `yaml:"log"`
-	Stat      SectionStat      `yaml:"stat"`
-	GRPC      SectionGRPC      `yaml:"grpc"`
-	BlackList SectionBlacklist `yaml:"blacklist"`
+	Core       SectionCore      `yaml:"core"`
+	API        SectionAPI       `yaml:"api"`
+	Android    SectionAndroid   `yaml:"android"`
+	Ios        SectionIos       `yaml:"ios"`
+	Log        SectionLog       `yaml:"log"`
+	Stat       SectionStat      `yaml:"stat"`
+	GRPC       SectionGRPC      `yaml:"grpc"`
+	BlackList  SectionBlacklist `yaml:"blacklist"`
+	AppConfigs struct {
+		Apps []SectionApplication `yaml:"apps"`
+	}
 }
 
 // SectionCore is sub section of config.
@@ -123,6 +128,7 @@ type SectionCore struct {
 	FeedbackTimeout int64          `yaml:"feedback_timeout"`
 	PID             SectionPID     `yaml:"pid"`
 	AutoTLS         SectionAutoTLS `yaml:"auto_tls"`
+	AppConfig       string         `yaml:"application_config"`
 }
 
 // SectionAutoTLS support Let's Encrypt setting.
@@ -145,10 +151,11 @@ type SectionAPI struct {
 
 // SectionAndroid is sub section of config.
 type SectionAndroid struct {
-	Enabled     bool   `yaml:"enabled"`
-	APIKey      string `yaml:"apikey"`
-	MaxRetry    int    `yaml:"max_retry"`
-	Credentials string `yaml:"credentials"`
+	Enabled           bool   `yaml:"enabled"`
+	APIKey            string `yaml:"apikey"`
+	MaxRetry          int    `yaml:"max_retry"`
+	Credentials       string `yaml:"credentials"`
+	CredentialsBase64 string `yaml:"credentials_base64"`
 }
 
 // SectionIos is sub section of config.
@@ -286,6 +293,8 @@ func LoadConf(confPath string) (ConfYaml, error) {
 	conf.Core.AutoTLS.Folder = viper.GetString("core.auto_tls.folder")
 	conf.Core.AutoTLS.Host = viper.GetString("core.auto_tls.host")
 
+	conf.Core.AppConfig = viper.GetString("core.application_config")
+
 	// Api
 	conf.API.PushURI = viper.GetString("api.push_uri")
 	conf.API.StatGoURI = viper.GetString("api.stat_go_uri")
@@ -347,5 +356,32 @@ func LoadConf(confPath string) (ConfYaml, error) {
 		conf.Core.QueueNum = int64(8192)
 	}
 
+	if conf.Core.AppConfig != "" {
+		// Open config file
+		file, err := os.Open(conf.Core.AppConfig)
+		if err != nil {
+			return conf, err
+		}
+		defer file.Close()
+
+		// Init new YAML decode
+		d := yaml.NewDecoder(file)
+
+		// Start YAML decoding from file
+		if err := d.Decode(&conf.AppConfigs); err != nil {
+			return conf, err
+		}
+	}
+
 	return conf, nil
+}
+
+func GetApplicationConfig(conf *ConfYaml, appID int) *SectionApplication {
+	for _, app := range conf.AppConfigs.Apps {
+		if app.AppID == appID {
+			return &app
+		}
+	}
+
+	return nil
 }

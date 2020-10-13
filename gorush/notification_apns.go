@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"github.com/appleboy/gorush/config"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -26,6 +28,87 @@ type Sound struct {
 	Critical int     `json:"critical,omitempty"`
 	Name     string  `json:"name,omitempty"`
 	Volume   float32 `json:"volume,omitempty"`
+}
+
+// InitAPNSClient use for initialize APNs Client.
+func InitAPNSClientByAppID(appID int) error {
+	conf := config.GetApplicationConfig(&PushConf, appID)
+	if conf == nil {
+		return errors.New(fmt.Sprintf("Not found app config id %d", appID))
+	}
+
+	if conf.Ios.Enabled {
+		var err error
+		var authKey *ecdsa.PrivateKey
+		var certificateKey tls.Certificate
+		var ext string
+
+		if conf.Ios.KeyPath != "" {
+			ext = filepath.Ext(conf.Ios.KeyPath)
+
+			switch ext {
+			case ".p12":
+				certificateKey, err = certificate.FromP12File(conf.Ios.KeyPath, conf.Ios.Password)
+			case ".pem":
+				certificateKey, err = certificate.FromPemFile(conf.Ios.KeyPath, conf.Ios.Password)
+			case ".p8":
+				authKey, err = token.AuthKeyFromFile(conf.Ios.KeyPath)
+			default:
+				err = errors.New("wrong certificate key extension")
+			}
+
+			if err != nil {
+				LogError.Error("Cert Error:", err.Error())
+
+				return err
+			}
+		} else if conf.Ios.KeyBase64 != "" {
+			ext = "." + conf.Ios.KeyType
+			key, err := base64.StdEncoding.DecodeString(conf.Ios.KeyBase64)
+			if err != nil {
+				LogError.Error("base64 decode error:", err.Error())
+
+				return err
+			}
+			switch ext {
+			case ".p12":
+				certificateKey, err = certificate.FromP12Bytes(key, conf.Ios.Password)
+			case ".pem":
+				certificateKey, err = certificate.FromPemBytes(key, conf.Ios.Password)
+			case ".p8":
+				authKey, err = token.AuthKeyFromBytes(key)
+			default:
+				err = errors.New("wrong certificate key type")
+			}
+
+			if err != nil {
+				LogError.Error("Cert Error:", err.Error())
+
+				return err
+			}
+		}
+
+		if ext == ".p8" && conf.Ios.KeyID != "" && conf.Ios.TeamID != "" {
+			token := &token.Token{
+				AuthKey: authKey,
+				// KeyID from developer account (Certificates, Identifiers & Profiles -> Keys)
+				KeyID: PushConf.Ios.KeyID,
+				// TeamID from developer account (View Account -> Membership)
+				TeamID: PushConf.Ios.TeamID,
+			}
+
+			ApplicationList[appID].ApnsClient, err = newApnsTokenClient(token)
+		} else {
+			ApplicationList[appID].ApnsClient, err = newApnsClient(certificateKey)
+		}
+
+		if err != nil {
+			LogError.Error("Transport Error:", err.Error())
+
+			return err
+		}
+	}
+	return nil
 }
 
 // InitAPNSClient use for initialize APNs Client.
@@ -321,15 +404,25 @@ func GetIOSNotification(req PushNotification) *apns2.Notification {
 }
 
 func getApnsClient(req PushNotification) (client *apns2.Client) {
-	if req.Production {
-		client = ApnsClient.Production()
-	} else if req.Development {
-		client = ApnsClient.Development()
+	var apnsClient *apns2.Client
+	var conf config.SectionIos
+	if req.AppID == 0 {
+		apnsClient = ApnsClient
+		conf = PushConf.Ios
 	} else {
-		if PushConf.Ios.Production {
-			client = ApnsClient.Production()
+		apnsClient = ApplicationList[req.AppID].ApnsClient
+		conf = config.GetApplicationConfig(&PushConf, req.AppID).Ios
+	}
+
+	if req.Production {
+		client = apnsClient.Production()
+	} else if req.Development {
+		client = apnsClient.Development()
+	} else {
+		if conf.Production {
+			client = apnsClient.Production()
 		} else {
-			client = ApnsClient.Development()
+			client = apnsClient.Development()
 		}
 	}
 	return
@@ -337,7 +430,7 @@ func getApnsClient(req PushNotification) (client *apns2.Client) {
 
 // PushToIOS provide send notification to APNs server.
 func PushToIOS(req PushNotification) bool {
-	LogAccess.Debug("Start push notification for iOS")
+	LogAccess.Debugf("Start push notification for iOS %v", req.Tokens)
 
 	var (
 		retryCount = 0
@@ -362,6 +455,7 @@ Retry:
 
 		// send ios notification
 		res, err := client.Push(notification)
+		LogAccess.Debugf("Push notification for iOS %v", res)
 
 		if err != nil || res.StatusCode != 200 {
 			if err == nil {

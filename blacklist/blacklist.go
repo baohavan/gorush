@@ -49,3 +49,8 @@ func (b *BlackList) IsInBlacklist(token string) (error, bool) {
 	res, err := b.redisClient.Get(fmt.Sprintf("bl:%d", xxhash.Sum64String(token))).Result()
 	return err, res != ""
 }
+
+func (b *BlackList) IsInDevToken(token string) (error, bool) {
+	res, err := b.redisClient.Get(fmt.Sprintf("dev:%d", xxhash.Sum64String(token))).Result()
+	return err, res != ""
+}
