@@ -90,7 +90,7 @@ func pushHandler(c *gin.Context) {
 		}
 	}(notifier)
 
-	LogAccess.Debugf("Push request %v", form)
+	LogAccess.Debugf("Push request %+v", form)
 
 	counts, logs := queueNotification(ctx, form)
 

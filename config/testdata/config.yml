@@ -6,7 +6,7 @@ core:
   worker_num: 0 # default worker number is runtime.NumCPU()
   queue_num: 0 # default queue number is 8192
   max_notification: 100
-  sync: false # set true if you need get error message from fail push notification in API response.
+  sync: true # set true if you need get error message from fail push notification in API response.
   feedback_hook_url: "" # set a hook url if you need get error message asynchronously from fail push notification in API response.
   feedback_timeout: 10 # default is 10 second
   mode: "release"
@@ -24,10 +24,11 @@ core:
     enabled: false # Automatically install TLS certificates from Let's Encrypt.
     folder: ".cache" # folder for storing TLS certificates
     host: "" # which domains the Let's Encrypt will attempt
+  application_config: "config/testdata/config.app.yaml"
 
 grpc:
-  enabled: false # enabale gRPC server
-  port: 9000
+  enabled: true # enabale gRPC server
+  port: 3838
 
 api:
   push_uri: "/api/push"
@@ -40,27 +41,28 @@ api:
 
 android:
   enabled: true
-  apikey: "YOUR_API_KEY"
+  apikey2: "AAAA84JELJU:APA91bGKxx-B4s2zNkWZcSqFtsmGMKFPa7yFkhth2TMyNJ_k092EMKoEAYrPWtzTk1IquTnx9ZWhghh8F4N98MiDfT-KipMkcGvoZI0PCETwbszLAcweelLGwqn2l28wsovkDunQF4K9"
+  apikey: "AAAAfyb03M0:APA91bFjXuYJcDB-fU8FN1zuvycx84mQwzfyprnF5nNBi0pSlWKvoXrTGn02nVJgqJezQLWmT80xJz2GZZkhF3Gi57DvLlMBbdLwA77Jkaxe-jar_DGraRMcwjpsJFu9NLISIjInD11m"
   max_retry: 0 # resend fail notification, default value zero is disabled
 
 ios:
-  enabled: false
-  key_path: "key.pem"
+  enabled: true
+  key_path: "config/testdata/key.pem"
   key_base64: "" # load iOS key from base64 input
   key_type: "pem" # could be pem, p12 or p8 type
-  password: "" # certificate password, default as empty string.
-  production: false
+  password: "abc123" # certificate password, default as empty string.
+  production: true
   max_retry: 0 # resend fail notification, default value zero is disabled
-  key_id: "" # KeyID from developer account (Certificates, Identifiers & Profiles -> Keys)
-  team_id: "" # TeamID from developer account (View Account -> Membership)
+  key_id: "9H62VN34AW" # KeyID from developer account (Certificates, Identifiers & Profiles -> Keys)
+  team_id: "WNKT72AV3K" # TeamID from developer account (View Account -> Membership)
 
 log:
   format: "string" # string or json
-  access_log: "stdout" # stdout: output to console, or define log path like "log/access_log"
+  access_log: "stdout"
   access_level: "debug"
-  error_log: "stderr" # stderr: output to console, or define log path like "log/error_log"
+  error_log: "stderr"
   error_level: "error"
-  hide_token: true
+  hide_token: false
 
 stat:
   engine: "memory" # support memory, redis, boltdb, buntdb or leveldb
@@ -75,3 +77,9 @@ stat:
     path: "bunt.db"
   leveldb:
     path: "level.db"
+
+blacklist:
+  redis:
+    addr: "redis:6379"
+    password: ""
+    db: 0

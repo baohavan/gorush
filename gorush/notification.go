@@ -59,7 +59,7 @@ type PushNotification struct {
 	BadTokens []string
 
 	// Common
-	AppID            int         `json:"-,omitempty"`
+	AppID            int         `json:"app_id,omitempty"`
 	ID               string      `json:"notif_id,omitempty"`
 	Tokens           []string    `json:"tokens" binding:"required"`
 	Platform         int         `json:"platform" binding:"required"`

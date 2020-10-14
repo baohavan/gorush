@@ -3,11 +3,12 @@ package config
 import (
 	"bytes"
 	"fmt"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"strings"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/spf13/viper"
 )

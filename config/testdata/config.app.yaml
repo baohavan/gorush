@@ -1,19 +1,17 @@
 apps:
   - app_id : 1
     android:
-      credentials_base64: "base64_1"
       enabled: true
+      apikey: "AAAA84JELJU:APA91bGKxx-B4s2zNkWZcSqFtsmGMKFPa7yFkhth2TMyNJ_k092EMKoEAYrPWtzTk1IquTnx9ZWhghh8F4N98MiDfT-KipMkcGvoZI0PCETwbszLAcweelLGwqn2l28wsovkDunQF4K9"
+      credentials: "config/testdata/netalo-firebase-adminsdk-fqhdg-1e0f91f588.json"
       max_retry: 0 # resend fail notification, default value zero is disabled
     ios:
       enabled: true
+      key_path: "config/testdata/key.pem"
       key_base64: "" # load iOS key from base64 input
       key_type: "pem" # could be pem, p12 or p8 type
-  - app_id: 10
-    android:
-      credentials_base64: "base64_2"
-      enabled: true
+      password: "abc123" # certificate password, default as empty string.
+      production: true
       max_retry: 0 # resend fail notification, default value zero is disabled
-    ios:
-      enabled: true
-      key_base64: "" # load iOS key from base64 input
-      key_type: "pem" # could be pem, p12 or p8 type
+      key_id: "9H62VN34AW" # KeyID from developer account (Certificates, Identifiers & Profiles -> Keys)
+      team_id: "WNKT72AV3K" # TeamID from developer account (View Account -> Membership)

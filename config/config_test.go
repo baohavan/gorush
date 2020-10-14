@@ -25,10 +25,10 @@ type ConfigTestSuite struct {
 
 func (suite *ConfigTestSuite) SetupTest() {
 	var err error
-	suite.ConfGorushDefault, err = LoadConf("")
-	if err != nil {
-		panic("failed to load default config.yml")
-	}
+	// suite.ConfGorushDefault, err = LoadConf("")
+	// if err != nil {
+	// 	panic("failed to load default config.yml")
+	// }
 	suite.ConfGorush, err = LoadConf("testdata/config.yml")
 	if err != nil {
 		panic("failed to load config.yml from file")

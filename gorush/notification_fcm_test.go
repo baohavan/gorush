@@ -40,7 +40,7 @@ func TestMissingAndroidAPIKey(t *testing.T) {
 	assert.Equal(t, "Missing Android API Key", err.Error())
 }
 func TestMissingKeyForInitFCMClient(t *testing.T) {
-	client, err := InitFCMClient("")
+	client, err := InitFCMClient()
 
 	assert.Nil(t, client)
 	assert.Error(t, err)
