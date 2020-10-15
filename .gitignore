@@ -35,3 +35,5 @@ dist
 custom
 release
 coverage.txt
+config/testdata/cert.pem
+config/testdata/netalo-firebase-adminsdk-fqhdg-1e0f91f588.json
