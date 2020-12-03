@@ -166,6 +166,7 @@ type SectionIos struct {
 	KeyBase64  string `yaml:"key_base64"`
 	KeyType    string `yaml:"key_type"`
 	Password   string `yaml:"password"`
+	Topic      string `yaml:"topic"`
 	Production bool   `yaml:"production"`
 	MaxRetry   int    `yaml:"max_retry"`
 	KeyID      string `yaml:"key_id"`

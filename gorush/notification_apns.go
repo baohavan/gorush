@@ -403,9 +403,8 @@ func GetIOSNotification(req PushNotification) *apns2.Notification {
 	return notification
 }
 
-func getApnsClient(req PushNotification) (client *apns2.Client) {
+func getApnsClient(req PushNotification) (client *apns2.Client, conf config.SectionIos) {
 	var apnsClient *apns2.Client
-	var conf config.SectionIos
 	if req.AppID == 0 {
 		apnsClient = ApnsClient
 		conf = PushConf.Ios
@@ -430,8 +429,6 @@ func getApnsClient(req PushNotification) (client *apns2.Client) {
 
 // PushToIOS provide send notification to APNs server.
 func PushToIOS(req PushNotification) bool {
-	LogAccess.Debugf("Start push notification for iOS %v", req.Tokens)
-
 	var (
 		retryCount = 0
 		maxRetry   = PushConf.Ios.MaxRetry
@@ -448,7 +445,14 @@ Retry:
 	)
 
 	notification := GetIOSNotification(req)
-	client := getApnsClient(req)
+	client, conf := getApnsClient(req)
+
+	notification.Topic = conf.Topic
+	if notification.PushType == "voip" {
+		notification.Topic = fmt.Sprintf("%s.voip", PushConf.Ios.Topic)
+	}
+
+	LogAccess.Debugf("Start push notification for iOS %v, topic: %s", req.Tokens, notification.Topic)
 
 	for _, token := range req.Tokens {
 		notification.DeviceToken = token

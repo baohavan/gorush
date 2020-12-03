@@ -710,21 +710,21 @@ func TestApnsHostFromRequest(t *testing.T) {
 	req := PushNotification{
 		Production: true,
 	}
-	client := getApnsClient(req)
+	client, _ := getApnsClient(req)
 	assert.Equal(t, apns2.HostProduction, client.Host)
 
 	req = PushNotification{
 		Development: true,
 	}
-	client = getApnsClient(req)
+	client, _ = getApnsClient(req)
 	assert.Equal(t, apns2.HostDevelopment, client.Host)
 
 	req = PushNotification{}
 	PushConf.Ios.Production = true
-	client = getApnsClient(req)
+	client, _ = getApnsClient(req)
 	assert.Equal(t, apns2.HostProduction, client.Host)
 
 	PushConf.Ios.Production = false
-	client = getApnsClient(req)
+	client, _ = getApnsClient(req)
 	assert.Equal(t, apns2.HostDevelopment, client.Host)
 }
