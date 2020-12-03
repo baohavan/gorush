@@ -449,7 +449,7 @@ Retry:
 
 	notification.Topic = conf.Topic
 	if notification.PushType == "voip" {
-		notification.Topic = fmt.Sprintf("%s.voip", PushConf.Ios.Topic)
+		notification.Topic = fmt.Sprintf("%s.voip", notification.Topic)
 	}
 
 	LogAccess.Debugf("Start push notification for iOS %v, topic: %s", req.Tokens, notification.Topic)
